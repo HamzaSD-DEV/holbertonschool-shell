@@ -10,9 +10,9 @@ start() {
   # Start the daemon in background, detach from terminal
   nohup "$DAEMON" >/dev/null 2>&1 &
   daemon_pid=$!
-  # Ensure pidfile directory exists
+  # Ensure pidfile directory exists (let errors surface if any)
   mkdir -p "$(dirname "$PIDFILE")"
-  # Write PID file
+  # Write PID file (let errors surface if any)
   printf "%d\n" "$daemon_pid" > "$PIDFILE"
 }
 
