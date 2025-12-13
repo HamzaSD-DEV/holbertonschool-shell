@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# Stop the 4-to_infinity_and_beyond process without using kill or killall
+# Use pkill to send SIGTERM to matching processes by command line
+pkill -f "4-to_infinity_and_beyond" 2>/dev/null || true
