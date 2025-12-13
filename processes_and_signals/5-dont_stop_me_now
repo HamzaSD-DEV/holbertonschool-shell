@@ -2,9 +2,7 @@
 # Stop the 4-to_infinity_and_beyond process using kill
 
 # Find PIDs of the target script (match full command line)
-pids=$(pgrep -f "[ ]4-to_infinity_and_beyond" || pgrep -f "4-to_infinity_and_beyond")
-
-# If found, send SIGTERM (default) to stop them
-if [ -n "$pids" ]; then
-  kill $pids 2>/dev/null || true
-fi
+pgrep -f "4-to_infinity_and_beyond" | while read -r pid; do
+  # Send SIGTERM (default) to stop each matching process
+  kill "$pid" 2>/dev/null || true
+done
