@@ -3,13 +3,15 @@
 # Usage: manage_my_process {start|stop|restart}
 
 PIDFILE="/var/run/my_process.pid"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-DAEMON="$SCRIPT_DIR/manage_my_process"
+DAEMON="./manage_my_process"
 
 start() {
-  # Start the daemon in background, detach from terminal
-  # Start the daemon in background and capture its PID
-  "$DAEMON" &
+  # Start the daemon fully detached if possible
+  if command -v setsid >/dev/null 2>&1; then
+    setsid "$DAEMON" >/dev/null 2>&1 &
+  else
+    nohup "$DAEMON" >/dev/null 2>&1 &
+  fi
   daemon_pid=$!
   # Ensure pidfile directory exists (let errors surface if any)
   mkdir -p "$(dirname "$PIDFILE")"
