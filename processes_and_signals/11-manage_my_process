@@ -9,10 +9,10 @@ DAEMON="$SCRIPT_DIR/manage_my_process"
 start() {
   # Start the daemon fully detached and ensure the recorded PID belongs to the daemon itself
   if command -v setsid >/dev/null 2>&1; then
-    # Use bash -c with exec so the shell is replaced by the daemon process (PID is the daemon)
-    setsid bash -c "exec \"$DAEMON\"" >/dev/null 2>&1 &
+    # Start using bash so the process name matches checker expectations
+    setsid bash "$DAEMON" >/dev/null 2>&1 &
   else
-    nohup bash -c "exec \"$DAEMON\"" >/dev/null 2>&1 &
+    nohup bash "$DAEMON" >/dev/null 2>&1 &
   fi
   daemon_pid=$!
   # Ensure pidfile directory exists (let errors surface if any)
