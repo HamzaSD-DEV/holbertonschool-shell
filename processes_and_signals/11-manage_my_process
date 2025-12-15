@@ -7,11 +7,12 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 DAEMON="$SCRIPT_DIR/manage_my_process"
 
 start() {
-  # Start the daemon fully detached if possible
+  # Start the daemon fully detached and ensure the recorded PID belongs to the daemon itself
   if command -v setsid >/dev/null 2>&1; then
-    setsid bash "$DAEMON" >/dev/null 2>&1 &
+    # Use bash -c with exec so the shell is replaced by the daemon process (PID is the daemon)
+    setsid bash -c "exec \"$DAEMON\"" >/dev/null 2>&1 &
   else
-    nohup bash "$DAEMON" >/dev/null 2>&1 &
+    nohup bash -c "exec \"$DAEMON\"" >/dev/null 2>&1 &
   fi
   daemon_pid=$!
   # Ensure pidfile directory exists (let errors surface if any)
@@ -24,7 +25,14 @@ stop() {
   if [ -f "$PIDFILE" ]; then
     pid=$(cat "$PIDFILE" 2>/dev/null)
     if [ -n "$pid" ]; then
+      # Try graceful stop
       kill "$pid" 2>/dev/null || true
+      # Small delay to let the process exit and flush buffers
+      sleep 0.3
+      # If still alive, force kill
+      if kill -0 "$pid" 2>/dev/null; then
+        kill -9 "$pid" 2>/dev/null || true
+      fi
     fi
     rm -f "$PIDFILE" 2>/dev/null || true
   fi
