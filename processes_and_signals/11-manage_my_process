@@ -8,18 +8,12 @@ DAEMON="$SCRIPT_DIR/manage_my_process"
 
 start() {
   # Start the daemon in background, detach from terminal
-  # Use bash to invoke the script to avoid shebang/CRLF issues on some environments
-  nohup bash "$DAEMON" >/dev/null 2>&1 &
+  # Start the daemon in background and capture its PID
+  "$DAEMON" &
   daemon_pid=$!
-  # Give it a moment to start
-  sleep 0.2
-  # If process died immediately, exit non-zero (case block still prints message per specs)
-  if ! kill -0 "$daemon_pid" 2>/dev/null; then
-    exit 1
-  fi
   # Ensure pidfile directory exists (let errors surface if any)
   mkdir -p "$(dirname "$PIDFILE")"
-  # Write PID file (let errors surface if any)
+  # Write PID file
   printf "%d\n" "$daemon_pid" > "$PIDFILE"
 }
 
