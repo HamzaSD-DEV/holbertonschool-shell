@@ -3,7 +3,8 @@
 # Usage: manage_my_process {start|stop|restart}
 
 PIDFILE="/var/run/my_process.pid"
-DAEMON="./manage_my_process"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+DAEMON="$SCRIPT_DIR/manage_my_process"
 
 start() {
   # Start the daemon fully detached if possible
