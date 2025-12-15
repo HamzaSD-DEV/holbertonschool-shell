@@ -9,9 +9,9 @@ DAEMON="$SCRIPT_DIR/manage_my_process"
 start() {
   # Start the daemon fully detached if possible
   if command -v setsid >/dev/null 2>&1; then
-    setsid "$DAEMON" >/dev/null 2>&1 &
+    setsid bash "$DAEMON" >/dev/null 2>&1 &
   else
-    nohup "$DAEMON" >/dev/null 2>&1 &
+    nohup bash "$DAEMON" >/dev/null 2>&1 &
   fi
   daemon_pid=$!
   # Ensure pidfile directory exists (let errors surface if any)
