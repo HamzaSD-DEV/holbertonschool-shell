@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Indefinitely write to /tmp/my_process every 2 seconds
+# Indefinitely writes "I am alive!" to /tmp/my_process every 2 seconds
 
-# Exit promptly on TERM/INT to avoid writing extra lines after being stopped
+# Exit promptly on SIGTERM/SIGINT
 trap 'exit 0' TERM INT
 
 # Ensure the output file exists

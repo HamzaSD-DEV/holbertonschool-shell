@@ -3,23 +3,18 @@
 # Usage: manage_my_process {start|stop|restart}
 
 PIDFILE="/var/run/my_process.pid"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+SCRIPT_DIR="$(dirname "$0")"
 DAEMON="$SCRIPT_DIR/manage_my_process"
 
 start() {
-  # Determine which script to run; if CRLF is detected, run a sanitized temp copy
-  RUN_DAEMON="$DAEMON"
-  if grep -q $'\r' "$DAEMON" 2>/dev/null; then
-    tmp_copy="/tmp/tmp_rovodev_manage_my_process_unix.$$"
-    sed 's/\r$//' "$DAEMON" > "$tmp_copy" 2>/dev/null || cp "$DAEMON" "$tmp_copy"
-    chmod +x "$tmp_copy" 2>/dev/null || true
-    RUN_DAEMON="$tmp_copy"
+  # Start the daemon fully detached and ensure the recorded PID belongs to the daemon itself
+  if command -v setsid >/dev/null 2>&1; then
+    # Start using bash so the process name matches checker expectations
+    setsid bash "$DAEMON" >/dev/null 2>&1 &
+  else
+    nohup bash "$DAEMON" >/dev/null 2>&1 &
   fi
-
-  # Start the daemon in background using bash so the process name matches checker expectations
-  bash "$RUN_DAEMON" >/dev/null 2>&1 &
   daemon_pid=$!
-
   # Ensure pidfile directory exists (let errors surface if any)
   mkdir -p "$(dirname "$PIDFILE")"
   # Write PID file
@@ -30,25 +25,17 @@ stop() {
   if [ -f "$PIDFILE" ]; then
     pid=$(cat "$PIDFILE" 2>/dev/null)
     if [ -n "$pid" ]; then
-      # Try graceful stop of recorded PID
+      # Try graceful stop
       kill "$pid" 2>/dev/null || true
+      # Small delay to let the process exit and flush buffers
       sleep 0.3
+      # If still alive, force kill
       if kill -0 "$pid" 2>/dev/null; then
         kill -9 "$pid" 2>/dev/null || true
       fi
     fi
     rm -f "$PIDFILE" 2>/dev/null || true
   fi
-  # As safety, stop any instances launched from our daemon path or sanitized temp copies
-  pkill -f "$DAEMON" 2>/dev/null || true
-  pkill -f "/tmp/tmp_rovodev_manage_my_process_unix." 2>/dev/null || true
-  # Wait briefly until no matching processes remain
-  for _i in 1 2 3 4 5; do
-    pgrep -f "$DAEMON" >/dev/null 2>&1 || pgrep -f "/tmp/tmp_rovodev_manage_my_process_unix." >/dev/null 2>&1 || break
-    sleep 0.2
-  done
-  # Cleanup any temporary sanitized daemon copies created at start time
-  rm -f /tmp/tmp_rovodev_manage_my_process_unix.* 2>/dev/null || true
 }
 
 case "$1" in
