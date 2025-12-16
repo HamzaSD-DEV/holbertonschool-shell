@@ -25,15 +25,17 @@ stop() {
   if [ -f "$PIDFILE" ]; then
     pid=$(cat "$PIDFILE" 2>/dev/null)
     if [ -n "$pid" ]; then
-      # Try graceful stop
+      # Try graceful stop of recorded PID
       kill "$pid" 2>/dev/null || true
       # Small delay to let the process exit and flush buffers
       sleep 0.3
-      # If still alive, force kill
+      # If still alive, force kill recorded PID
       if kill -0 "$pid" 2>/dev/null; then
         kill -9 "$pid" 2>/dev/null || true
       fi
     fi
+    # As a safety net, kill any remaining matching processes started from our daemon path
+    pkill -f "$DAEMON" 2>/dev/null || true
     rm -f "$PIDFILE" 2>/dev/null || true
   fi
 }

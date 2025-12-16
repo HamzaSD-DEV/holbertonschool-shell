@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Indefinitely write to /tmp/my_process every 2 seconds
 
+# Exit promptly on TERM/INT to avoid writing extra lines after being stopped
+trap 'exit 0' TERM INT
+
 # Ensure the output file exists
 : > /tmp/my_process 2>/dev/null || true
 
